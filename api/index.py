@@ -9,7 +9,7 @@ def get_data(neo_type, neo_category, neo_page):
     if neo_type not in ['wishlist', 'progress', 'complete']:
         raise ValueError('Invalid type parameter. Must be wishlist, progress, or complete')
     
-    if neo_category not in ['book', 'movie', 'tv', 'music', 'game', 'podcast'] and neo_category != '':
+    if neo_category not in ['book', 'movie', 'tv', 'music', 'game', 'podcast', '']:
         raise ValueError('Invalid category parameter. Must be book, movie, tv, music, game, podcast, or an empty string')
 
     base_url = f'https://neodb.social/api/me/shelf/{neo_type}?page={neo_page}'
