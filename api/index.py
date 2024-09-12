@@ -5,34 +5,28 @@ import os
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-def get_data(neo_type, neo_category):
+def get_data(neo_type, neo_category, neo_page):
     if neo_type not in ['wishlist', 'progress', 'complete']:
         raise ValueError('Invalid type parameter. Must be wishlist, progress, or complete')
     if neo_category not in ['book', 'movie', 'tv', 'music', 'game', 'podcast']:
         raise ValueError('Invalid category parameter. Must be book, movie, tv, music, game, or podcast')
     
-    url = f'https://neodb.social/api/me/shelf/{neo_type}?category={neo_category}'
+    url = f'https://neodb.social/api/me/shelf/{neo_type}?category={neo_category}&page={neo_page}'
     headers = {'Authorization': 'Bearer ' + os.environ.get('AUTHORIZATION'), 'Accept': 'application/json'}
     response = requests.get(url, headers=headers)
-    json_data = json.loads(response.text)
-    pages_value = json_data['pages']
-    
-    all_results = []
-    for page_num in range(1, pages_value+1):
-        requests_path = f'{url}&page={page_num}'
-        r = requests.get(requests_path, headers=headers)
-        result = r.json()
-        all_results.extend(result['data'])
-    
-    return all_results
+    return json.loads(response.text)
 
 class Handler(BaseHTTPRequestHandler): 
     def do_GET(self):
         path = self.path
         neo_type = re.findall(r'type=([^&]*)', path)[0]
         neo_category = re.findall(r'category=([^&]*)', path)[0]
+        neo_page_str = re.findall(r'page=([^&]*)', path)
+        neo_page = int(neo_page_str[0]) if neo_page_str else 1
+        if neo_page <= 0:
+            raise ValueError('Page number must be a positive integer')
         try:    
-            data = get_data(neo_type, neo_category) 
+            data = get_data(neo_type, neo_category, neo_page) 
         except Exception as e:  
             self.send_error(500, str(e))
             return
